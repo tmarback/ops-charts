@@ -1,0 +1,23 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: grafana-db
+spec:
+  secretName: grafana-db-cert
+  secretTemplate:
+    labels:
+      cnpg.io/reload: ""
+  isCA: false
+  dnsNames:
+    # Primary
+    - grafana-db-rw.{{ .Release.Namespace }}.svc.cluster.local
+    - grafana-db-rw.{{ .Release.Namespace }}.svc
+    # All nodes
+    - grafana-db-r.{{ .Release.Namespace }}.svc
+    - grafana-db-r.{{ .Release.Namespace }}.svc.cluster.local
+    # Replicas
+    - grafana-db-ro.{{ .Release.Namespace }}.svc
+    - grafana-db-ro.{{ .Release.Namespace }}.svc.cluster.local
+  issuerRef:
+    name: local
+    kind: ClusterIssuer

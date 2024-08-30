@@ -1,0 +1,38 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: grafana-db
+  labels:
+    app.kubernetes.io/part-of: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  instances: {{ required "Number of instances missing" .Values.grafana.database.instances }}
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.4
+
+  storage:
+    storageClass: {{ required "Storage class missing" .Values.grafana.database.storage.class }}
+    size: {{ required "Storage size missing" .Values.grafana.database.storage.size }}
+
+  postgresql:
+    parameters:
+      shared_buffers: {{ required "Shared buffer size missing" .Values.grafana.database.sharedBufferSize }}
+      # pg_stat_statements
+      pg_stat_statements.max: "5000"
+      pg_stat_statements.track: top
+  
+  resources: {{ .Values.grafana.database.resources | toYaml | nindent 4 }}
+
+  certificates:
+    serverTLSSecret: grafana-db-cert
+    serverCASecret: local-trust-bundle
+
+  bootstrap:
+    initdb:
+      database: grafana
+      owner: grafana
+
+  monitoring:
+    enablePodMonitor: true
+    tls:
+      enabled: true

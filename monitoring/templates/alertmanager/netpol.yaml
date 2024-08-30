@@ -1,0 +1,40 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: alertmanager
+spec:
+  podSelector:
+    matchLabels:
+      alertmanager: alertmanager
+  policyTypes:
+    - Ingress
+  ingress:
+    # grafana
+    - from:
+        - podSelector:
+            matchLabels:
+              app: grafana
+      ports:
+        - port: 9093 
+          protocol: TCP
+    # metrics
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: prometheus
+              operator.prometheus.io/name: prometheus
+      ports:
+        - port: 9093 # http-web
+          protocol: TCP
+        - port: 8080 # reloader-web
+          protocol: TCP
+    # Mesh (HA)
+    - from:
+        - podSelector:
+            matchLabels:
+              alertmanager: alertmanager
+      ports:
+        - port: 9094 # mesh-tcp
+          protocol: TCP
+        - port: 9094 # mesh-udp
+          protocol: UDP

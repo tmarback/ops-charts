@@ -1,0 +1,28 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: alertmanager
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+spec:
+  instanceSelector:
+    matchLabels: {{- include "grafana.labels" . | nindent 6 }}
+  valuesFrom:
+    - targetPath: "secureJsonData.tlsCACert"
+      valueFrom:
+        secretKeyRef:
+          name: local-trust-bundle
+          key: ca.crt
+  datasource:
+    name: Alertmanager
+    type: alertmanager
+    uid: alertmanager
+    url: https://{{ include "alertmanager.hostname.short" . }}:9093
+    access: proxy
+    jsonData:
+      tlsSkipVerify: false
+      tlsAuthWithCACert: true
+      handleGrafanaManagedAlerts: false
+      implementation: prometheus
+    secureJsonData:
+      tlsCACert: "${ca.crt}"

@@ -1,0 +1,75 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: kubernetes-resources
+spec:
+  groups:
+    - name: kubernetes-resources
+      rules:
+        - alert: KubeQuotaAlmostFull
+          annotations:
+            description: >-
+              {{`Namespace {{ $labels.namespace }} is using {{ $value |
+              humanizePercentage }} of its {{ $labels.resource }} quota.`}}
+            runbook_url: >-
+              https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubequotaalmostfull
+            summary: Namespace quota is going to be full.
+          expr: |-
+            kube_resourcequota{job="kube-state-metrics", type="used"}
+              / ignoring(instance, job, type)
+            (kube_resourcequota{job="kube-state-metrics", type="hard"} > 0)
+              > 0.9 < 1
+          for: 15m
+          labels:
+            severity: info
+        - alert: KubeQuotaFullyUsed
+          annotations:
+            description: >-
+              {{`Namespace {{ $labels.namespace }} is using {{ $value |
+              humanizePercentage }} of its {{ $labels.resource }} quota.`}}
+            runbook_url: >-
+              https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubequotafullyused
+            summary: Namespace quota is fully used.
+          expr: |-
+            kube_resourcequota{job="kube-state-metrics", type="used"}
+              / ignoring(instance, job, type)
+            (kube_resourcequota{job="kube-state-metrics", type="hard"} > 0)
+              == 1
+          for: 15m
+          labels:
+            severity: info
+        - alert: KubeQuotaExceeded
+          annotations:
+            description: >-
+              {{`Namespace {{ $labels.namespace }} is using {{ $value |
+              humanizePercentage }} of its {{ $labels.resource }} quota.`}}
+            runbook_url: >-
+              https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubequotaexceeded
+            summary: Namespace quota has exceeded the limits.
+          expr: |-
+            kube_resourcequota{job="kube-state-metrics", type="used"}
+              / ignoring(instance, job, type)
+            (kube_resourcequota{job="kube-state-metrics", type="hard"} > 0)
+              > 1
+          for: 15m
+          labels:
+            severity: warning
+        - alert: CPUThrottlingHigh
+          annotations:
+            description: >-
+              {{`{{ $value | humanizePercentage }} throttling of CPU in namespace
+              {{ $labels.namespace }} for container {{ $labels.container }} in
+              pod {{ $labels.pod }}.`}}
+            runbook_url: >-
+              https://runbooks.prometheus-operator.dev/runbooks/kubernetes/cputhrottlinghigh
+            summary: Processes experience elevated CPU throttling.
+          expr: >-
+            sum(increase(container_cpu_cfs_throttled_periods_total{container!="",
+            }[5m])) by (cluster, container, pod, namespace)
+              /
+            sum(increase(container_cpu_cfs_periods_total{}[5m])) by (cluster,
+            container, pod, namespace)
+              > ( 25 / 100 )
+          for: 15m
+          labels:
+            severity: info

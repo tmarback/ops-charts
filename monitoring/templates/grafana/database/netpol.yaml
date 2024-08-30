@@ -1,0 +1,42 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: grafana-db
+spec:
+  podSelector:
+    matchLabels:
+      cnpg.io/cluster: grafana-db
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    # From other Postgres nodes
+    - podSelector:
+        matchLabels:
+          cnpg.io/cluster: grafana-db
+    # From Grafana
+    - podSelector:
+        matchLabels:
+          app: grafana
+    ports:
+    - protocol: TCP
+      port: 5432
+  - from:
+    # From operator
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: cnpg-system
+    ports:
+    - protocol: TCP
+      port: 5432
+    - protocol: TCP
+      port: 8000
+  - from:
+    # Metrics
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: prometheus
+          operator.prometheus.io/name: prometheus
+    ports:
+    - protocol: TCP
+      port: 9187

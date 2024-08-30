@@ -1,0 +1,28 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: prometheus
+spec:
+  selector:
+    matchLabels:
+      prometheus: prometheus
+  jobLabel: prometheus
+  podMetricsEndpoints:
+    - path: /metrics
+      port: web
+      scheme: https
+      tlsConfig:
+        serverName: {{ include "prometheus.hostname.short" . | quote }}
+        ca:
+          secret:
+            name: local-trust-bundle
+            key: ca.crt
+    - path: /metrics
+      port: reloader-web
+      scheme: https
+      tlsConfig:
+        serverName: {{ include "prometheus.hostname.short" . | quote }}
+        ca:
+          secret:
+            name: local-trust-bundle
+            key: ca.crt

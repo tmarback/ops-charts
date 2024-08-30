@@ -1,0 +1,28 @@
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: prometheus
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus
+      operator.prometheus.io/name: prometheus
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        # Grafana
+        - podSelector:
+            matchLabels:
+              app: grafana
+        # Forwarders
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: cluster-monitoring
+          podSelector:
+            matchLabels:
+              app: metrics-forwarder
+              management/group: {{ include "group" . | quote }}
+      ports:
+        - protocol: TCP
+          port: 9090

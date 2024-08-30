@@ -1,0 +1,10 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: cluster
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+spec:
+  instanceSelector:
+    matchLabels: {{- include "grafana.labels" . | nindent 6 }}
+  title: Cluster

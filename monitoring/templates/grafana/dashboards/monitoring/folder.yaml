@@ -1,0 +1,12 @@
+{{- if or .Values.defaultServices.alertmanager .Values.defaultServices.prometheus }}
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: monitoring
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+spec:
+  instanceSelector:
+    matchLabels: {{- include "grafana.labels" . | nindent 6 }}
+  title: "Monitoring"
+{{- end }}

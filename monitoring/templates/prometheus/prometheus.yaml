@@ -1,0 +1,91 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  name: prometheus
+spec:
+  version: {{ required "Missing prometheus version" .Values.prometheus.version | quote }}
+
+  replicas: 1
+  shards: 1
+
+  logFormat: logfmt
+  logLevel: info
+
+  scrapeInterval: {{ required "Missing prometheus scrape interval" .Values.prometheus.scrapeInterval | quote }}
+  evaluationInterval: {{ required "Missing prometheus evaluation interval" .Values.prometheus.evaluationInterval | quote }}
+  retention: {{ required "Missing prometheus retention" .Values.prometheus.retention | quote }}
+  paused: false
+
+  # For the forwarder
+  enableRemoteWriteReceiver: true
+
+  enableAdminAPI: false
+  externalUrl: "https://{{ include "prometheus.hostname.short" . }}:9090"
+  portName: web
+  routePrefix: /
+  web:
+    tlsConfig:
+      cert:
+        secret:
+          key: tls.crt
+          name: prometheus-cert
+      keySecret:
+        key: tls.key
+        name: prometheus-cert
+
+  serviceAccountName: prometheus
+  storage:
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ required "Missing prometheus storage size" .Values.prometheus.storage.size | quote }}
+        storageClassName: {{ required "Missing prometheus storage class" .Values.prometheus.storage.class | quote }}
+  resources: {{ .Values.prometheus.resources | toYaml | nindent 4 }}
+
+  securityContext:
+    runAsNonRoot: true
+    fsGroup: 2000
+    runAsGroup: 2000
+    runAsUser: 1000
+    seccompProfile:
+      type: RuntimeDefault
+
+  # Because for some reason specifying it on the alertmanager config doesn't work
+  volumes:
+    - name: local-trust
+      secret:
+        secretName: local-trust-bundle
+  volumeMounts:
+    - name: local-trust
+      mountPath: /etc/local-trust
+      readOnly: true
+
+  alerting:
+    alertmanagers:
+      - apiVersion: v2
+        name: alertmanager-operated
+        namespace: {{ .Release.Namespace | quote }}
+        scheme: https
+        pathPrefix: /
+        port: web
+        tlsConfig:
+          serverName: {{ include "alertmanager.hostname.short" . | quote }}
+          caFile: /etc/local-trust/ca.crt
+  
+  podMonitorNamespaceSelector: {{- include "selector.namespace" . | nindent 4 }}
+  podMonitorSelector: {}
+
+  serviceMonitorNamespaceSelector: {{- include "selector.namespace" . | nindent 4 }}
+  serviceMonitorSelector: {}
+  
+  probeNamespaceSelector: {{- include "selector.namespace" . | nindent 4 }}
+  probeSelector: {}
+
+  ruleNamespaceSelector: {{- include "selector.namespace" . | nindent 4 }}
+  ruleSelector: {}
+
+  scrapeConfigNamespaceSelector: {{- include "selector.namespace" . | nindent 4 }}
+  scrapeConfigSelector: {}

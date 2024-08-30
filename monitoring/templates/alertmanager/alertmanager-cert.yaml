@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: alertmanager
+spec:
+  secretName: alertmanager-cert
+  isCA: false
+  dnsNames:
+    - {{ include "alertmanager.hostname.long" . | quote }}
+    - {{ include "alertmanager.hostname.short" . | quote }}
+  issuerRef:
+    name: local
+    kind: ClusterIssuer

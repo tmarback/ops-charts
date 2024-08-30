@@ -1,0 +1,29 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: alertmanager
+spec:
+  selector:
+    matchLabels:
+      alertmanager: alertmanager
+  jobLabel: alertmanager
+  podMetricsEndpoints:
+    - enableHttp2: true
+      path: /metrics
+      port: web
+      scheme: https
+      tlsConfig:
+        serverName: {{ include "alertmanager.hostname.short" . | quote }}
+        ca:
+          secret:
+            name: local-trust-bundle
+            key: ca.crt
+    - path: /metrics
+      port: reloader-web
+      scheme: https
+      tlsConfig:
+        serverName: {{ include "alertmanager.hostname.short" . | quote }}
+        ca:
+          secret:
+            name: local-trust-bundle
+            key: ca.crt

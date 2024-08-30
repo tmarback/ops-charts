@@ -1,0 +1,84 @@
+group: ""
+
+# Generates dashboards and alerting rules
+defaultServices:
+  alertmanager: true
+  prometheus: true
+  grafana: true
+  redis: true
+  cnpg: true
+  mysql: true
+  mariadb: true
+
+cloudflare: 
+  enabled: true
+  sourceNamespace: ""
+  certificates: # Secret names
+    grafana: ""
+
+grafana:
+  domain: ""
+
+  replicas: 2
+
+  oidc:
+    clientID: ""
+    clientSecret:
+      name: ""
+      key: ""
+    roleMapping:
+      clusterAdmin: ""
+      admin: "" # optional
+      editor: "" # optional
+      viewer: "" # optional
+
+  database:
+    instances: 3
+    sharedBufferSize: 38MB # Set to 25% of total memory
+    storage:
+      class: topolvm-root
+      size: 2Gi
+    resources:
+      requests:
+        cpu: 10m
+        memory: 150Mi
+      limits:
+        memory: 300Mi
+
+prometheus:
+  version: v2.52.0
+
+  scrapeInterval: 2m
+  evaluationInterval: 30s
+  retention: 7d
+
+  storage:
+    class: ceph-block
+    size: 5Gi
+  resources:
+    requests:
+      cpu: 200m
+      memory: 2Gi
+    limits:
+      memory: 4Gi
+
+alertmanager:
+  version: v0.27.0
+
+  retention: 120h
+
+  # Main configuration
+  config: {}
+    # name: group-alertmanager-global
+    # global:
+    #   resolveTimeout: 5m
+
+  storage:
+    class: ceph-block
+    size: 50Mi
+  resources:
+    requests:
+      cpu: 1m
+      memory: 50Mi
+    limits:
+      memory: 100Mi

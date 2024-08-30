@@ -1,0 +1,28 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: prometheus
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+spec:
+  instanceSelector:
+    matchLabels: {{- include "grafana.labels" . | nindent 6 }}
+  valuesFrom:
+    - targetPath: "secureJsonData.tlsCACert"
+      valueFrom:
+        secretKeyRef:
+          name: local-trust-bundle
+          key: ca.crt
+  datasource:
+    name: Prometheus
+    type: prometheus
+    uid: prometheus
+    access: proxy
+    url: https://{{ include "prometheus.hostname.short" . }}:9090
+    isDefault: true
+    jsonData:
+      tlsSkipVerify: false
+      tlsAuthWithCACert: true
+      timeInterval: 2m
+    secureJsonData:
+      tlsCACert: "${ca.crt}"

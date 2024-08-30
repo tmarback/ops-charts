@@ -1,0 +1,155 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: Grafana
+metadata:
+  name: grafana
+  labels: {{- include "grafana.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  config:
+    server:
+      domain: {{ include "grafana.domain" . | quote }}
+      protocol: https
+      root_url: "%(protocol)s://%(domain)s/"
+      cert_file: /certs/tls.crt
+      cert_key: /certs/tls.key
+      certs_watch_interval: 60s
+    log:
+      mode: "console"
+    database:
+      type: "postgres"
+      host: "grafana-db-rw.{{ .Release.Namespace }}.svc:5432"
+      name: ${DB_NAME}
+      user: ${DB_USER}
+      password: ${DB_PASSWORD}
+      ssl_mode: verify-full
+      ca_cert_path: /etc/ssl/certs/cluster-ca.crt
+    auth:
+      disable_login_form: "false"
+    auth.generic_oauth:
+      enabled: "true"
+      name: OpenUnison
+      auto_login: "true"
+      allow_sign_up: "true"
+      client_id: {{ required "Missing OIDC client ID" .Values.grafana.oidc.clientID | quote }}
+      client_secret: ${AUTH_CLIENT_SECRET}
+      scopes: openid profile email 
+      email_attribute_path: email
+      login_attribute_path: email
+      name_attribute_path: name
+      groups_attribute_path: groups
+      role_attribute_path: {{ include "grafana.groupMapping" . | quote }}
+      allow_assign_grafana_admin: "true"
+      use_pkce: "true"
+      auth_url: https://unison.sympho.io/auth/idp/k8sIdp/auth
+      token_url: https://unison.sympho.io/auth/idp/k8sIdp/token
+      api_url: https://unison.sympho.io/auth/idp/k8sIdp/userinfo
+      
+  deployment:
+    spec:
+      replicas: {{ required "Replicas missing" .Values.grafana.replicas }}
+      template:
+        spec:
+          volumes:
+            - name: certificate
+              secret:
+                secretName: grafana-cert
+            - name: ssl-trust
+              secret:
+                secretName: local-trust-bundle
+          containers:
+            - name: grafana
+              readinessProbe:
+                httpGet:
+                  path: /api/health
+                  port: 3000
+                  scheme: HTTPS
+              livenessProbe:
+                failureThreshold: 1
+                httpGet:
+                  path: /api/health
+                  port: 3000
+                  scheme: HTTPS
+                initialDelaySeconds: 60
+                periodSeconds: 10
+                successThreshold: 1
+                timeoutSeconds: 3
+              env:
+                - name: GF_SECURITY_ADMIN_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: grafana-admin-credentials
+                      key: GF_SECURITY_ADMIN_USER
+                - name: GF_SECURITY_ADMIN_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: grafana-admin-credentials
+                      key: GF_SECURITY_ADMIN_PASSWORD
+                # OIDC creds
+                - name: AUTH_CLIENT_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ required "Missing OIDC client secret name" .Values.grafana.oidc.clientSecret.name | quote }}
+                      key: {{ required "Missing OIDC client secret key" .Values.grafana.oidc.clientSecret.key | quote }}
+                # Database creds
+                - name: DB_NAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: grafana-db-app
+                      key: dbname
+                - name: DB_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: grafana-db-app
+                      key: user
+                - name: DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: grafana-db-app
+                      key: password
+              volumeMounts:
+                - mountPath: /certs
+                  name: certificate
+                  readOnly: true
+                - mountPath: "/etc/ssl/certs/cluster-ca.crt"
+                  name: ssl-trust
+                  subPath: ca.crt
+                  readOnly: true
+  
+  service:
+    metadata:
+      labels:
+        grafana: "{{ include "group" . }}-monitoring"
+      annotations:
+        traefik.ingress.kubernetes.io/service.serversscheme: https
+  ingress:
+    metadata:
+      annotations:
+        traefik.ingress.kubernetes.io/router.entrypoints: websecure
+        {{- if .Values.cloudflare.enabled }}
+        traefik.ingress.kubernetes.io/router.middlewares: {{ .Release.Namespace }}-cloudflare-middleware@kubernetescrd
+        traefik.ingress.kubernetes.io/router.tls.options: {{ .Release.Namespace }}-cloudflare-tls@kubernetescrd
+        {{- else }}
+        cert-manager.io/cluster-issuer: letsencrypt
+        {{- end }}
+    spec:
+      ingressClassName: traefik
+      rules:
+        - host: {{ include "grafana.domain" . | quote }}
+          http:
+            paths:
+              - path: /
+                pathType: Prefix
+                backend:
+                  service:
+                    name: grafana-service
+                    port:
+                      name: grafana
+      tls:
+      - hosts:
+        - {{ include "grafana.domain" . | quote }}
+        {{- if .Values.cloudflare.enabled }}
+        secretName: cloudflare-grafana-cert
+        {{- else }}
+        secretName: grafana-ingress-cert
+        {{- end }}

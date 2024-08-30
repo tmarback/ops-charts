@@ -1,0 +1,54 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Alertmanager
+metadata:
+  name: alertmanager
+spec:
+  version: {{ required "Missing alertmanager version" .Values.alertmanager.version | quote }}
+
+  replicas: 1
+
+  logFormat: logfmt
+  logLevel: info
+
+  retention: {{ required "Missing alertmanager retention" .Values.alertmanager.retention | quote }}
+  paused: false
+
+  externalUrl: 'https://{{ include "alertmanager.hostname.short" . }}:9093'
+  portName: web
+  routePrefix: /
+  web:
+    tlsConfig:
+      cert:
+        secret:
+          key: tls.crt
+          name: alertmanager-cert
+      keySecret:
+        key: tls.key
+        name: alertmanager-cert
+
+  serviceAccountName: alertmanager
+  storage:
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ required "Missing alertmanager storage size" .Values.alertmanager.storage.size | quote }}
+        storageClassName: {{ required "Missing alertmanager storage class" .Values.alertmanager.storage.class | quote }}
+  resources: {{ .Values.alertmanager.resources | toYaml | nindent 4 }}
+  
+  securityContext:
+    fsGroup: 2000
+    runAsGroup: 2000
+    runAsNonRoot: true
+    runAsUser: 1000
+    seccompProfile:
+      type: RuntimeDefault
+
+  alertmanagerConfigNamespaceSelector: {{- include "selector.namespace" . | nindent 4 }}
+  alertmanagerConfigSelector: {}
+
+  {{- if .Values.alertmanager.config }}
+  alertmanagerConfiguration: {{ .Values.alertmanager.config | toYaml | nindent 4 }}
+  {{- end }}
