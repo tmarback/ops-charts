@@ -50,7 +50,7 @@ prometheus:
 
   scrapeInterval: 2m
   evaluationInterval: 30s
-  retention: 7d
+  retention: 30d
 
   storage:
     class: ceph-block
