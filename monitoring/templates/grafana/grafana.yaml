@@ -122,6 +122,7 @@ spec:
         grafana: "{{ include "group" . }}-monitoring"
       annotations:
         traefik.ingress.kubernetes.io/service.serversscheme: https
+        traefik.ingress.kubernetes.io/service.serverstransport: {{ .Release.Namespace }}-grafana@kubernetescrd
   ingress:
     metadata:
       annotations:

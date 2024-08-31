@@ -1,0 +1,9 @@
+apiVersion: traefik.io/v1alpha1
+kind: ServersTransport
+metadata:
+  name: grafana
+spec:
+  serverName: {{ include "grafana.hostname.short" . | quote }}
+  insecureSkipVerify: false
+  rootCAsSecrets:
+    - local-trust-bundle
