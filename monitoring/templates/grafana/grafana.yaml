@@ -6,6 +6,10 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "20"
 spec:
+  client:
+    tls:
+      certSecretRef:
+        name: local-trust-bundle
   config:
     server:
       domain: {{ include "grafana.domain" . | quote }}
