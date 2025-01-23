@@ -47,7 +47,7 @@ grafana:
         memory: 300Mi
 
 prometheus:
-  version: v2.52.0
+  version: v3.1.0
 
   scrapeInterval: 2m
   evaluationInterval: 30s
