@@ -6,6 +6,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "20"
 spec:
+  version: {{ required "Missing grafana version" .Values.grafana.version | quote }}
   client:
     tls:
       certSecretRef:

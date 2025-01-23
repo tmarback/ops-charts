@@ -17,6 +17,7 @@ cloudflare:
     grafana: ""
 
 grafana:
+  version: 11.3.0
   domain: ""
 
   replicas: 2
