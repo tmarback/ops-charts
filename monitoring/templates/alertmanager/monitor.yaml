@@ -18,12 +18,3 @@ spec:
           secret:
             name: local-trust-bundle
             key: ca.crt
-    - path: /metrics
-      port: reloader-web
-      scheme: https
-      tlsConfig:
-        serverName: {{ include "alertmanager.hostname.short" . | quote }}
-        ca:
-          secret:
-            name: local-trust-bundle
-            key: ca.crt
