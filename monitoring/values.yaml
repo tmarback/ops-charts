@@ -63,6 +63,8 @@ prometheus:
     limits:
       memory: 4Gi
 
+  backupSchedule: cluster-storage
+
 alertmanager:
   version: v0.27.0
 

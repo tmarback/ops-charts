@@ -36,6 +36,11 @@ spec:
   serviceAccountName: prometheus
   storage:
     volumeClaimTemplate:
+      {{- with .Values.prometheus.backupSchedule }}
+      metadata:
+        labels:
+          backup.management/schedule: {{ . | quote }}
+      {{- end }}
       spec:
         accessModes:
           - ReadWriteOnce
