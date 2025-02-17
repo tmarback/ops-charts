@@ -2,6 +2,10 @@
 {{- required "Owning group must be provided" .Values.group }}
 {{- end }}
 
+{{- define "project" }}
+{{- required "Owning project must be provided" .Values.project }}
+{{- end }}
+
 {{- define "ops.namespace" }}
 {{- printf "%s-ops" ( include "group" . ) }}
 {{- end }}
@@ -44,6 +48,30 @@ matchExpressions:
 
 {{- define "tempo.hostname.long" }}
 {{- printf "tempo-tempo-distributor.%s.svc.cluster.local" .Release.Namespace }}
+{{- end }}
+
+{{- define "loki.backend.hostname.short" }}
+{{- printf "loki-backend.%s.svc" .Release.Namespace }}
+{{- end }}
+
+{{- define "loki.backend.hostname.long" }}
+{{- printf "loki-backend.%s.svc.cluster.local" .Release.Namespace }}
+{{- end }}
+
+{{- define "loki.read.hostname.short" }}
+{{- printf "loki-read.%s.svc" .Release.Namespace }}
+{{- end }}
+
+{{- define "loki.read.hostname.long" }}
+{{- printf "loki-read.%s.svc.cluster.local" .Release.Namespace }}
+{{- end }}
+
+{{- define "loki.write.hostname.short" }}
+{{- printf "loki-write.%s.svc" .Release.Namespace }}
+{{- end }}
+
+{{- define "loki.write.hostname.long" }}
+{{- printf "loki-write.%s.svc.cluster.local" .Release.Namespace }}
 {{- end }}
 
 {{- define "grafana.hostname.short" }}

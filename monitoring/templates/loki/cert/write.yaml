@@ -1,0 +1,15 @@
+{{- if .Values.loki.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: loki-write
+spec:
+  secretName: loki-cert-write
+  isCA: false
+  dnsNames:
+    - {{ include "loki.write.hostname.short" . | quote }}
+    - {{ include "loki.write.hostname.long" . | quote }}
+  issuerRef:
+    name: local
+    kind: ClusterIssuer
+{{- end }}

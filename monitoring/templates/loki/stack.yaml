@@ -1,0 +1,202 @@
+{{- if .Values.loki.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: loki
+  namespace: {{ include "ops.namespace" . | quote }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  project: {{ include "project" . | quote }}
+
+  source:
+    repoURL: "https://grafana.github.io/helm-charts"
+    chart: loki
+    targetRevision: 6.24.0
+
+    helm:
+      valuesObject:
+        memberlist:
+          service:
+            publishNotReadyAddresses: true
+        loki:
+          auth_enabled: false
+          schemaConfig:
+            configs:
+              - from: "2024-04-01"
+                store: tsdb
+                object_store: s3
+                schema: v13
+                index:
+                  prefix: loki_index_
+                  period: 24h
+          limits_config:
+            retention_period: {{ required "Retention period is required" .Values.loki.retention }}
+            reject_old_samples: true
+            reject_old_samples_max_age: 168h
+            max_cache_freshness_per_query: 10m
+            split_queries_by_interval: 15m
+            query_timeout: {{ required "Query timeout is required" .Values.loki.queryTimeout }}
+            volume_enabled: true
+            allow_structured_metadata: true # enable OTLP ingestion
+          pattern_ingester:
+            enabled: true
+          querier:
+            max_concurrent: {{ required "Max concurrent queries is required" .Values.loki.maxConcurrentQueries }}
+
+          server:
+            tls_min_version: VersionTLS12
+            http_tls_config:
+              cert_file: /certs/server/tls.crt
+              key_file: /certs/server/tls.key
+              client_auth_type: NoClientCert
+          readinessProbe: # Need to set the probe to use HTTPS
+            httpGet:
+              path: /ready
+              port: http-metrics
+              scheme: HTTPS
+            initialDelaySeconds: 30
+            timeoutSeconds: 1
+
+          storage:
+            type: s3
+            bucketNames: 
+              chunks: "${S3_BUCKET}"
+              ruler: "${S3_BUCKET}"
+            s3:
+              endpoint: "https://rook-ceph-rgw-store.rook-ceph.svc.cluster.local:443"           
+              region: us-east-1
+              accessKeyId: "${S3_ACCESS_KEY_ID}"
+              secretAccessKey: "${S3_ACCESS_KEY_SECRET}"
+              s3ForcePathStyle: true
+              insecure: false
+              http_config:
+                insecure_skip_verify: false
+                ca_file: /certs/trust/ca.crt
+
+        test:
+          enabled: false
+        lokiCanary:
+          enabled: false
+
+        rbac:
+          namespaced: true
+
+        networkPolicy:
+          enabled: false # Buggy
+
+        gateway:
+          enabled: false # Want to control access to each component separately
+        
+        write:
+          replicas: {{ required "Write replicas is required" .Values.loki.write.replicas }}
+          persistence:
+            volumeClaimsEnabled: true
+            size: {{ required "Write persistence size is required" .Values.loki.write.persistenceSize }}
+          extraArgs:
+            - "-config.expand-env=true"
+          extraEnvFrom:
+            - secretRef:
+                name: loki-bucket-creds-parsed
+          extraVolumes:
+            - name: trust-bundle
+              secret:
+                secretName: local-trust-bundle 
+            - name: server-cert
+              secret:
+                secretName: loki-cert-write
+          extraVolumeMounts:
+            - name: trust-bundle
+              mountPath: /certs/trust
+              readOnly: true
+            - name: server-cert
+              mountPath: /certs/server
+              readOnly: true
+          {{- with .Values.loki.write.resources }}
+          resources: {{- . | toYaml | nindent 12 }}
+          {{- end }}
+        read:
+          replicas: {{ required "Read replicas is required" .Values.loki.read.replicas }}
+          persistence:
+            volumeClaimsEnabled: true
+            size: {{ required "Read persistence size is required" .Values.loki.read.persistenceSize }}
+          extraArgs:
+            - "-config.expand-env=true"
+          extraEnvFrom:
+            - secretRef:
+                name: loki-bucket-creds-parsed
+          extraVolumes:
+            - name: trust-bundle
+              secret:
+                secretName: local-trust-bundle 
+            - name: server-cert
+              secret:
+                secretName: loki-cert-read
+          extraVolumeMounts:
+            - name: trust-bundle
+              mountPath: /certs/trust
+              readOnly: true
+            - name: server-cert
+              mountPath: /certs/server
+              readOnly: true
+          {{- with .Values.loki.read.resources }}
+          resources: {{- . | toYaml | nindent 12 }}
+          {{- end }}
+        backend:
+          replicas: {{ required "Backend replicas is required" .Values.loki.backend.replicas }}
+          persistence:
+            volumeClaimsEnabled: true
+            size: {{ required "Backend persistence size is required" .Values.loki.backend.persistenceSize }}
+          extraArgs:
+            - "-config.expand-env=true"
+          extraEnvFrom:
+            - secretRef:
+                name: loki-bucket-creds-parsed
+          extraVolumes:
+            - name: trust-bundle
+              secret:
+                secretName: local-trust-bundle 
+            - name: server-cert
+              secret:
+                secretName: loki-cert-backend
+          extraVolumeMounts:
+            - name: trust-bundle
+              mountPath: /certs/trust
+              readOnly: true
+            - name: server-cert
+              mountPath: /certs/server
+              readOnly: true
+          {{- with .Values.loki.backend.resources }}
+          resources: {{- . | toYaml | nindent 12 }}
+          {{- end }}
+
+        chunksCache:
+          enabled: {{ .Values.loki.chunksCache.enabled }}
+          replicas: {{ .Values.loki.chunksCache.replicas }}
+          allocatedMemory: {{ .Values.loki.chunksCache.allocatedMemory }}
+          defaultValidity: {{ .Values.loki.chunksCache.defaultValidity }}
+          writebackSizeLimit: {{ printf "%dMB" ( div .Values.loki.chunksCache.allocatedMemory 2 ) }}
+
+        resultsCache:
+          enabled: {{ .Values.loki.resultsCache.enabled }}
+          replicas: {{ .Values.loki.resultsCache.replicas }}
+          allocatedMemory: {{ .Values.loki.resultsCache.allocatedMemory }}
+          defaultValidity: {{ .Values.loki.resultsCache.defaultValidity }}
+          writebackSizeLimit: {{ printf "%dMB" ( div .Values.loki.resultsCache.allocatedMemory 2 ) }}
+
+        sidecar:
+          rules:
+            enabled: false
+          
+  destination:
+    name: in-cluster
+    namespace: {{ .Release.Namespace | quote }}
+  
+  syncPolicy:
+    automated:
+      prune: true
+    syncOptions:
+      - RespectIgnoreDifferences=true
+{{- end }}

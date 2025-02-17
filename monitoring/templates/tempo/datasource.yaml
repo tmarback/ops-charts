@@ -21,4 +21,14 @@ spec:
         datasourceUid: prometheus
       tracesToMetrics:
         datasourceUid: prometheus
+      {{- if .Values.loki.enabled }}
+      tracesToLogsV2:
+        datasourceUid: loki
+        filterByTraceID: true
+        filterBySpanID: true
+        spanStartTimeShift: -10m
+        spanEndTimeShift: 10m
+      lokiSearch:
+        datasourceUid: loki
+      {{- end }}
 {{- end }}

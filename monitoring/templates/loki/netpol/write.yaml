@@ -1,0 +1,20 @@
+{{- if .Values.loki.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: loki-write
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: write
+      app.kubernetes.io/instance: loki
+      app.kubernetes.io/name: loki
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector: {{- include "selector.namespace" . | nindent 12 }}
+      ports:
+        - port: http-metrics
+          protocol: TCP
+{{- end }}

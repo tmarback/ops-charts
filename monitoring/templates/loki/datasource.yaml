@@ -1,0 +1,35 @@
+{{- if .Values.loki.enabled }}
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: loki
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+spec:
+  instanceSelector:
+    matchLabels: {{- include "grafana.labels" . | nindent 6 }}
+  valuesFrom:
+    - targetPath: "secureJsonData.tlsCACert"
+      valueFrom:
+        secretKeyRef:
+          name: local-trust-bundle
+          key: ca.crt
+  datasource:
+    name: Loki
+    type: loki
+    uid: loki
+    access: proxy
+    url: https://{{ include "loki.read.hostname.short" . }}:3100
+    secureJsonData:
+      tlsCACert: "${ca.crt}"
+    jsonData:
+      maxLines: {{ required "Max lines is required" .Values.loki.datasource.maxLines }}
+      {{- if .Values.tempo.enabled }}
+      derivedFields:
+        - datasourceUid: tempo
+          matcherRegex: trace_id
+          matcherType: label
+          name: Trace ID
+          url: ${__value.raw}
+      {{- end }}
+{{- end }}

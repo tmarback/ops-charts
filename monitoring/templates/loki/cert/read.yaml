@@ -1,0 +1,15 @@
+{{- if .Values.loki.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: loki-read
+spec:
+  secretName: loki-cert-read
+  isCA: false
+  dnsNames:
+    - {{ include "loki.read.hostname.short" . | quote }}
+    - {{ include "loki.read.hostname.long" . | quote }}
+  issuerRef:
+    name: local
+    kind: ClusterIssuer
+{{- end }}

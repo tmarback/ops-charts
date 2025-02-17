@@ -1,0 +1,41 @@
+{{- if .Values.loki.enabled }}
+apiVersion: kyverno.io/v1
+kind: Policy
+metadata:
+  name: parse-bucket-creds-loki
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  generateExisting: true
+
+  rules:
+  - name: generate-bucket-creds
+    match:
+      any:
+      - resources:
+          kinds:
+          - Secret
+          names: 
+          - loki-bucket-creds
+
+    context:
+      - name: bucket
+        variable:
+          value: {{ "{{ request.object.data.BucketInfo }}" | quote}}
+          jmesPath: 'base64_decode(@) | parse_json(@)'
+      - name: endpoint
+        variable:
+          value: "https://rook-ceph-rgw-store.rook-ceph.svc.cluster.local:443"
+
+    generate:
+      synchronize: true
+      apiVersion: v1
+      kind: Secret
+      name: loki-bucket-creds-parsed
+      namespace: {{ .Release.Namespace | quote }}
+      data:
+        data:
+          S3_BUCKET: {{ "{{ bucket.spec.bucketName | base64_encode(@) }}" | quote }}
+          S3_ACCESS_KEY_ID: {{ "{{ bucket.spec.secretS3.accessKeyID | base64_encode(@) }}" | quote }}
+          S3_ACCESS_KEY_SECRET: {{ "{{ bucket.spec.secretS3.accessSecretKey | base64_encode(@) }}" | quote }}
+{{- end }}
