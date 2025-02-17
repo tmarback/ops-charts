@@ -1,0 +1,15 @@
+{{- if .Values.tempo.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: tempo-distributor
+spec:
+  secretName: tempo-distributor-cert
+  isCA: false
+  dnsNames:
+    - {{ include "tempo.distributor.hostname.short" . | quote }}
+    - {{ include "tempo.distributor.hostname.long" . | quote }}
+  issuerRef:
+    name: local
+    kind: ClusterIssuer
+{{- end }}

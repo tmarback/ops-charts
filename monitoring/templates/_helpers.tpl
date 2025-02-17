@@ -42,12 +42,20 @@ matchExpressions:
 {{- printf "alertmanager-operated.%s.svc.cluster.local" .Release.Namespace }}
 {{- end }}
 
-{{- define "tempo.hostname.short" }}
+{{- define "tempo.distributor.hostname.short" }}
 {{- printf "tempo-tempo-distributor.%s.svc" .Release.Namespace }}
 {{- end }}
 
-{{- define "tempo.hostname.long" }}
+{{- define "tempo.distributor.hostname.long" }}
 {{- printf "tempo-tempo-distributor.%s.svc.cluster.local" .Release.Namespace }}
+{{- end }}
+
+{{- define "tempo.query.hostname.short" }}
+{{- printf "tempo-tempo-query-frontend.%s.svc" .Release.Namespace }}
+{{- end }}
+
+{{- define "tempo.query.hostname.long" }}
+{{- printf "tempo-tempo-query-frontend.%s.svc.cluster.local" .Release.Namespace }}
 {{- end }}
 
 {{- define "loki.backend.hostname.short" }}

@@ -13,7 +13,7 @@ spec:
     type: tempo
     uid: tempo
     access: proxy
-    url: "http://{{ include "tempo.hostname.short" . }}:3200"
+    url: "http://{{ include "tempo.query.hostname.short" . }}:3200"
     jsonData:
       nodeGraph:
         enabled: true
