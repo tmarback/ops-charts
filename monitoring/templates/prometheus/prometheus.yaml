@@ -19,6 +19,10 @@ spec:
   # For the forwarder
   enableRemoteWriteReceiver: true
 
+  {{- if .Values.tempo.enabled }}
+  enableFeatures:
+    - exemplar-storage
+  {{- end }}
   enableAdminAPI: false
   externalUrl: "https://{{ include "prometheus.hostname.short" . }}:9090"
   portName: web
