@@ -23,7 +23,7 @@ grafana:
   replicas: 2
 
   oidc:
-    clientID: ""
+    clientID: grafana
     clientSecret:
       name: ""
       key: ""

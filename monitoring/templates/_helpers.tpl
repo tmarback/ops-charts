@@ -2,6 +2,14 @@
 {{- required "Owning group must be provided" .Values.group }}
 {{- end }}
 
+{{- define "unison.namespace" }}
+{{- printf "%s-unison" ( include "group" . ) }}
+{{- end }}
+
+{{- define "unison.url" }}
+{{- printf "https://unison.sympho.io/auth/idp/%s" ( include "group" . ) }}
+{{- end }}
+
 {{- define "selector.namespace" }}
 matchExpressions:
 - key: management/group
@@ -41,6 +49,18 @@ matchExpressions:
 {{- define "grafana.labels" }}
 group: {{ include "group" . }}
 dashboards: monitoring
+{{- end }}
+
+{{- define "grafana.oidc.clientId" }}
+{{- required "Missing OIDC client ID" .Values.grafana.oidc.clientID }}
+{{- end }}
+
+{{- define "grafana.oidc.clientSecret.name" }}
+{{- required "Missing OIDC client secret name" .Values.grafana.oidc.clientSecret.name }}
+{{- end }}
+
+{{- define "grafana.oidc.clientSecret.key" }}
+{{- required "Missing OIDC client secret key" .Values.grafana.oidc.clientSecret.key }}
 {{- end }}
 
 {{- define "grafana.groupMapping" }}
