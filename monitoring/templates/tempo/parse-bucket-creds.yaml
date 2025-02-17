@@ -1,0 +1,42 @@
+{{- if .Values.tempo.enabled }}
+apiVersion: kyverno.io/v1
+kind: Policy
+metadata:
+  name: parse-bucket-creds-tempo
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  generateExisting: true
+
+  rules:
+  - name: generate-bucket-creds
+    match:
+      any:
+      - resources:
+          kinds:
+          - Secret
+          names: 
+          - tempo-bucket-creds
+
+    context:
+      - name: bucket
+        variable:
+          value: {{ "{{ request.object.data.BucketInfo }}" | quote }}
+          jmesPath: 'base64_decode(@) | parse_json(@)'
+      - name: endpoint
+        variable:
+          value: "https://rook-ceph-rgw-store.rook-ceph.svc.cluster.local:443"
+
+    generate:
+      synchronize: true
+      apiVersion: v1
+      kind: Secret
+      name: tempo-bucket-creds-parsed
+      namespace: {{ .Release.Namespace | quote }}
+      data:
+        data:
+          bucket: {{ "{{ bucket.spec.bucketName | base64_encode(@) }}" | quote }}
+          endpoint: {{ "{{ endpoint | base64_encode(@) }}" | quote }} # The one in the bucket JSON is HTTP
+          access_key_id: {{ "{{ bucket.spec.secretS3.accessKeyID | base64_encode(@) }}" | quote }}
+          access_key_secret: {{ "{{ bucket.spec.secretS3.accessSecretKey | base64_encode(@) }}" | quote }}
+{{- end }}

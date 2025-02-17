@@ -85,3 +85,20 @@ alertmanager:
       memory: 50Mi
     limits:
       memory: 100Mi
+
+tempo:
+  enabled: false
+  replicas:
+    compactor: 1
+    distributor: 2
+    ingester: 2
+    querier: 1
+    queryFrontend: 1
+  retention: 168h0m0s # 7 days
+  storageSize: 1Gi
+  resources:
+    limits:
+      memory: 2Gi
+      # cpu: 2.0
+  tracing:
+    sampling: 0.0

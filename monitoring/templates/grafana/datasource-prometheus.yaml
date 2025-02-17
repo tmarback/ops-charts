@@ -20,9 +20,14 @@ spec:
     access: proxy
     url: https://{{ include "prometheus.hostname.short" . }}:9090
     isDefault: true
+    secureJsonData:
+      tlsCACert: "${ca.crt}"
     jsonData:
       tlsSkipVerify: false
       tlsAuthWithCACert: true
       timeInterval: 2m
-    secureJsonData:
-      tlsCACert: "${ca.crt}"
+      {{- if .Values.tempo.enabled }}
+      exemplarTraceIdDestinations:
+        - name: trace_id
+          datasourceUid: tempo
+      {{- end }}

@@ -1,0 +1,48 @@
+{{- if .Values.tempo.enabled }}
+apiVersion: tempo.grafana.com/v1alpha1
+kind: TempoStack
+metadata:
+  name: tempo
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  storage:
+    secret:
+      name: tempo-bucket-creds-parsed
+      type: s3
+    tls:
+      enabled: true
+      caName: local-trust-bundle
+  storageSize: {{ .Values.tempo.storageSize | quote }}
+  resources:
+    total: {{- .Values.tempo.resources | toYaml | nindent 6 }}
+  observability:
+    metrics:
+      createServiceMonitors: true
+      createPrometheusRules: true
+    tracing:
+      sampling_fraction: {{ .Values.tempo.tracing.sampling | quote }}
+      jaeger_agent_endpoint: localhost:10010
+  retention:
+    global:
+      traces: {{ .Values.tempo.retention | quote }}
+  template:
+    compactor:
+      replicas: {{ .Values.tempo.replicas.compactor }}
+    distributor:
+      component:
+        replicas: {{ .Values.tempo.replicas.distributor }}
+      tls: 
+        enabled: true
+        certName: tempo-cert
+    ingester:
+      replicas: {{ .Values.tempo.replicas.ingester }}
+      podSecurityContext: 
+        fsGroup: 10001
+    querier:
+      replicas: {{ .Values.tempo.replicas.querier }}
+    queryFrontend:
+      component:
+        replicas: {{ .Values.tempo.replicas.queryFrontend }}
+{{- end }}
+  

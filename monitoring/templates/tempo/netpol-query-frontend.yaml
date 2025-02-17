@@ -1,0 +1,25 @@
+{{- if .Values.tempo.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: tempo-query-frontend
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: query-frontend
+      app.kubernetes.io/instance: tempo
+      app.kubernetes.io/name: tempo
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        # From Grafana
+        - podSelector:
+            matchLabels:
+              app: grafana
+      ports:
+        - port: 3200 # http
+          protocol: TCP
+        - port: 9095 # grpc
+          protocol: TCP
+{{- end }}

@@ -1,0 +1,29 @@
+{{- if .Values.tempo.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: tempo-stack
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: tempo
+      app.kubernetes.io/name: tempo
+  policyTypes:
+    - Ingress
+  ingress:
+    # Allow stack compontents to communicate to eachother
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: tempo
+              app.kubernetes.io/name: tempo
+    - from:
+        # Metrics
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: prometheus
+              operator.prometheus.io/name: prometheus
+      ports:
+        - port: 3200
+          protocol: TCP
+{{- end }}

@@ -1,0 +1,24 @@
+{{- if .Values.tempo.enabled }}
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: tempo
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+spec:
+  instanceSelector:
+    matchLabels: {{- include "grafana.labels" . | nindent 6 }}
+  datasource:
+    name: Tempo
+    type: tempo
+    uid: tempo
+    access: proxy
+    url: "http://{{ include "tempo.hostname.short" . }}:3200"
+    jsonData:
+      nodeGraph:
+        enabled: true
+      serviceMap:
+        datasourceUid: prometheus
+      tracesToMetrics:
+        datasourceUid: prometheus
+{{- end }}

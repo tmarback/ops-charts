@@ -1,0 +1,34 @@
+{{- if .Values.tempo.enabled }}
+apiVersion: kyverno.io/v1
+kind: Policy
+metadata:
+  name: convert-local-bundle
+spec:
+  generateExisting: true
+
+  rules:
+  - name: to-configmap
+    match:
+      any:
+      - resources:
+          kinds:
+          - Secret
+          names: 
+          - local-trust-bundle
+
+    context:
+      - name: bundle
+        variable:
+          value: {{ "{{ request.object.data.\"ca.crt\" }}" | quote }}
+          jmesPath: 'base64_decode(@)'
+
+    generate:
+      synchronize: true
+      apiVersion: v1
+      kind: ConfigMap
+      name: local-trust-bundle
+      namespace: {{ .Release.Namespace | quote }}
+      data:
+        data:
+          service-ca.crt: {{ "{{ bundle }}" | quote }}
+{{- end }}

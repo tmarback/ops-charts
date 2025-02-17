@@ -38,6 +38,14 @@ matchExpressions:
 {{- printf "alertmanager-operated.%s.svc.cluster.local" .Release.Namespace }}
 {{- end }}
 
+{{- define "tempo.hostname.short" }}
+{{- printf "tempo-tempo-distributor.%s.svc" .Release.Namespace }}
+{{- end }}
+
+{{- define "tempo.hostname.long" }}
+{{- printf "tempo-tempo-distributor.%s.svc.cluster.local" .Release.Namespace }}
+{{- end }}
+
 {{- define "grafana.hostname.short" }}
 {{- printf "grafana-service.%s.svc" .Release.Namespace }}
 {{- end }}
