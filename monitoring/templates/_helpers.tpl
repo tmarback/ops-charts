@@ -2,6 +2,10 @@
 {{- required "Owning group must be provided" .Values.group }}
 {{- end }}
 
+{{- define "ops.namespace" }}
+{{- printf "%s-ops" ( include "group" . ) }}
+{{- end }}
+
 {{- define "unison.namespace" }}
 {{- printf "%s-unison" ( include "group" . ) }}
 {{- end }}
@@ -77,7 +81,7 @@ dashboards: monitoring
 {{- end }}
 
 {{- define "cloudflare.namespace" }}
-{{- required "Cloudflare namespace must be provided" .Values.cloudflare.sourceNamespace }}
+{{- default ( include "ops.namespace" . ) .Values.cloudflare.sourceNamespace }}
 {{- end }}
 
 {{- define "cloudflare.cert.grafana" }}

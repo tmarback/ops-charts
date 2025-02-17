@@ -12,7 +12,7 @@ defaultServices:
 
 cloudflare: 
   enabled: true
-  sourceNamespace: ""
+  sourceNamespace: "" # Defaults to the ops namespace for the group
   certificates: # Secret names
     grafana: ""
 
