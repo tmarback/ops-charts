@@ -1,0 +1,81 @@
+{{- if or .Values.tempo.enabled .Values.loki.enabled }}
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: default-sidecar
+spec:
+  mode: sidecar
+  volumes:
+    - name: otel-sidecar-trust-bundle
+      secret:
+        secretName: local-trust-bundle
+  volumeMounts:
+    - name: otel-sidecar-trust-bundle
+      mountPath: /trust
+      readOnly: true
+  config:
+    receivers:
+      # Need to use non-standard ports because for whatever reason
+      # the Tempo operator injects this into the receiver which is
+      # already using the default ports
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:10000
+          http:
+            endpoint: 0.0.0.0:10001
+      {{- if .Values.tempo.enabled }}
+      jaeger:
+        protocols:
+          thrift_compact:
+            endpoint: 0.0.0.0:10010
+      {{- end }}
+
+    processors:
+      batch:
+        timeout: 1s
+      resourcedetection/env:
+        detectors: [env]
+        timeout: 2s
+        override: false
+
+    exporters:
+      {{- if .Values.tempo.enabled }}
+      otlp/tempo:
+        endpoint: {{ include "tempo.distributor.hostname.short" . }}:4317
+        tls:
+          insecure: false
+          ca_file: /trust/ca.crt
+      {{- end }}
+      {{- if .Values.loki.enabled }}
+      otlphttp/loki:
+        endpoint: https://{{ include "loki.write.hostname.short" . }}:3100/otlp
+        tls:
+          insecure: false
+          ca_file: /trust/ca.crt
+      {{- end }}
+
+    service:
+      pipelines:
+        {{- if .Values.tempo.enabled }}
+        traces:
+          receivers:
+            - otlp 
+            - jaeger
+          processors:
+            - resourcedetection/env
+            - batch
+          exporters: 
+            - otlp/tempo
+        {{- end }}
+        {{- if .Values.loki.enabled }}
+        logs:
+          receivers:
+            - otlp
+          processors:
+            - resourcedetection/env
+            - batch
+          exporters: 
+            - otlphttp/loki
+        {{- end }}
+{{- end }}
