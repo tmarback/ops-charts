@@ -7,4 +7,5 @@ metadata:
 spec:
   instanceSelector:
     matchLabels: {{- include "grafana.labels" . | nindent 6 }}
+  uid: cluster
   title: Cluster

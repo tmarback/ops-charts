@@ -7,7 +7,8 @@ metadata:
 spec:
   instanceSelector:
     matchLabels: {{- include "grafana.labels" . | nindent 6 }}
-  folder: Cluster
+  folderRef: cluster
+  uid: cluster-resources-cluster
   # configMapRef:
   #   key: k8s-resources-cluster.json
   #   name: kube-prometheus-stack-k8s-resources-cluster

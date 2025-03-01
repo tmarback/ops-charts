@@ -7,7 +7,8 @@ metadata:
 spec:
   instanceSelector:
     matchLabels: {{- include "grafana.labels" . | nindent 6 }}
-  folder: Cluster
+  folderRef: cluster
+  uid: cluster-persistentvolumes
   # configMapRef:
   #   key: persistentvolumesusage.json
   #   name: kube-prometheus-stack-persistentvolumesusage

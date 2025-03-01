@@ -5,7 +5,8 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "40"
 spec:
-  folder: Cluster
+  folderRef: cluster
+  uid: cluster-storage-volumes-cluster
   instanceSelector:
     matchLabels: {{- include "grafana.labels" . | nindent 6 }}
   grafanaCom:

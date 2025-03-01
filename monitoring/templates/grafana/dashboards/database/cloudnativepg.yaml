@@ -8,7 +8,8 @@ metadata:
 spec:
   instanceSelector:
     matchLabels: {{- include "grafana.labels" . | nindent 6 }}
-  folder: "Database"
+  folderRef: database
+  uid: cloudnativepg
   grafanaCom:
     id: 20417
     revision: 2

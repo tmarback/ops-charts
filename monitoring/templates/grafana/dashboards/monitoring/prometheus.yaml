@@ -8,7 +8,8 @@ metadata:
 spec:
   instanceSelector:
     matchLabels: {{- include "grafana.labels" . | nindent 6 }}
-  folder: "Monitoring"
+  folderRef: monitoring
+  uid: prometheus
   json: >
     {
       "annotations": { "list": [] },

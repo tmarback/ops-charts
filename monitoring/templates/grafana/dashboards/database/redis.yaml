@@ -8,7 +8,8 @@ metadata:
 spec:
   instanceSelector:
     matchLabels: {{- include "grafana.labels" . | nindent 6 }}
-  folder: "Database"
+  folderRef: database
+  uid: redis
   # The original dashboard has hardcoded intervals which don't work
   # grafanaCom:
   #   id: 11835

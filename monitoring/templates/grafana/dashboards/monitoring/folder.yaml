@@ -8,5 +8,6 @@ metadata:
 spec:
   instanceSelector:
     matchLabels: {{- include "grafana.labels" . | nindent 6 }}
+  uid: monitoring
   title: "Monitoring"
 {{- end }}
