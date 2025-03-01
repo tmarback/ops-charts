@@ -1,0 +1,19 @@
+{{- $enabled := false }}
+{{- range $k, $v := .Values.defaultServices.generic }}
+  {{- if $v }}
+    {{- $enabled = true }}
+  {{- end }}
+{{- end }}
+{{- if $enabled }}
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: generic
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+spec:
+  instanceSelector:
+    matchLabels: {{- include "grafana.labels" . | nindent 6 }}
+  uid: generic
+  title: Generic
+{{- end }}

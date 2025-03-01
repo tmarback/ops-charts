@@ -10,6 +10,8 @@ defaultServices:
   cnpg: true
   mysql: true
   mariadb: true
+  generic:
+    springBoot: false
 
 cloudflare: 
   enabled: true
