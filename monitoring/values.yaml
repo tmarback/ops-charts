@@ -8,9 +8,10 @@ defaultServices:
     prometheus: true
     grafana: true
   database:
-    redis: true
+    # cnpg is on by default because of grafana's database
     cnpg: true
-    mysql: true
+    mysql: false
+    redis: false
   generic:
     springBoot: false
 
