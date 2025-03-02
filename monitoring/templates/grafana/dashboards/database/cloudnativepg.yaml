@@ -1,4 +1,4 @@
-{{- if .Values.defaultServices.cnpg }}
+{{- if .Values.defaultServices.database.cnpg }}
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:

@@ -3,13 +3,15 @@ project: ""
 
 # Generates dashboards and alerting rules
 defaultServices:
-  alertmanager: true
-  prometheus: true
-  grafana: true
-  redis: true
-  cnpg: true
-  mysql: true
-  mariadb: true
+  monitoring:
+    alertmanager: true
+    prometheus: true
+    grafana: true
+  database:
+    redis: true
+    cnpg: true
+    mysql: true
+    mariadb: true
   generic:
     springBoot: false
 

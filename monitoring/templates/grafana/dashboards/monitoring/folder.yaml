@@ -1,4 +1,10 @@
-{{- if or .Values.defaultServices.alertmanager .Values.defaultServices.prometheus }}
+{{- $enabled := false }}
+{{- range $k, $v := .Values.defaultServices.monitoring }}
+  {{- if $v }}
+    {{- $enabled = true }}
+  {{- end }}
+{{- end }}
+{{- if $enabled }}
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaFolder
 metadata:

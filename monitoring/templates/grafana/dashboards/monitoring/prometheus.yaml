@@ -1,4 +1,4 @@
-{{- if .Values.defaultServices.prometheus }}
+{{- if .Values.defaultServices.monitoring.prometheus }}
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:

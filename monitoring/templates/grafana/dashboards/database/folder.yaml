@@ -1,4 +1,10 @@
-{{- if or .Values.defaultServices.cnpg .Values.defaultServices.mysql .Values.defaultServices.redis }}
+{{- $enabled := false }}
+{{- range $k, $v := .Values.defaultServices.database }}
+  {{- if $v }}
+    {{- $enabled = true }}
+  {{- end }}
+{{- end }}
+{{- if $enabled }}
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaFolder
 metadata:

@@ -1,4 +1,4 @@
-{{- if .Values.defaultServices.mysql }}
+{{- if .Values.defaultServices.database.mysql }}
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
