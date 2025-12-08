@@ -12,5 +12,5 @@ spec:
   uid: cloudnativepg
   grafanaCom:
     id: 20417
-    revision: 2
+    revision: 4
 {{- end }}
