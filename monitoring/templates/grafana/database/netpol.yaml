@@ -10,27 +10,27 @@ spec:
   - Ingress
   ingress:
   - from:
-    # From other Postgres nodes
-    - podSelector:
-        matchLabels:
-          cnpg.io/cluster: grafana-db
     # From Grafana
     - podSelector:
         matchLabels:
           app: grafana
     ports:
     - protocol: TCP
-      port: 5432
+      port: postgresql
   - from:
+    # From other Postgres nodes
+    - podSelector:
+        matchLabels:
+          cnpg.io/cluster: grafana-db
     # From operator
     - namespaceSelector:
         matchLabels:
           kubernetes.io/metadata.name: cnpg-system
     ports:
     - protocol: TCP
-      port: 5432
+      port: postgresql
     - protocol: TCP
-      port: 8000
+      port: status
   - from:
     # Metrics
     - podSelector:
@@ -39,4 +39,4 @@ spec:
           operator.prometheus.io/name: prometheus
     ports:
     - protocol: TCP
-      port: 9187
+      port: metrics
