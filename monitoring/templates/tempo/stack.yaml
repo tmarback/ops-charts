@@ -22,7 +22,7 @@ spec:
       createPrometheusRules: true
     tracing:
       sampling_fraction: {{ .Values.tempo.tracing.sampling | quote }}
-      jaeger_agent_endpoint: localhost:10010
+      otlp_http_endpoint: localhost:10001
   retention:
     global:
       traces: {{ .Values.tempo.retention | quote }}
