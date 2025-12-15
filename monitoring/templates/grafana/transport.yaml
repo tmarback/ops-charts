@@ -5,5 +5,5 @@ metadata:
 spec:
   serverName: {{ include "grafana.hostname.short" . | quote }}
   insecureSkipVerify: false
-  rootCAsSecrets:
-    - local-trust-bundle
+  rootCAs:
+    - secret: local-trust-bundle
