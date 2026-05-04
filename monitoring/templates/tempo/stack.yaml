@@ -44,5 +44,7 @@ spec:
     queryFrontend:
       component:
         replicas: {{ .Values.tempo.replicas.queryFrontend }}
+  networkPolicy:
+    enabled: false # Ingress is too broad
 {{- end }}
   
