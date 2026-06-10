@@ -123,11 +123,3 @@ dashboards: monitoring
 {{- printf " || contains(groups[*], '%s') && 'Viewer'" . }}
 {{- end }}
 {{- end }}
-
-{{- define "cloudflare.namespace" }}
-{{- default ( include "ops.namespace" . ) .Values.cloudflare.sourceNamespace }}
-{{- end }}
-
-{{- define "cloudflare.cert.grafana" }}
-{{- printf "%s/%s" ( include "cloudflare.namespace" . ) ( required "Missing grafana secret for cloudflare" .Values.cloudflare.certificates.grafana ) }}
-{{- end }}

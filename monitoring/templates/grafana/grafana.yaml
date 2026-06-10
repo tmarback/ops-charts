@@ -155,8 +155,4 @@ spec:
       tls:
       - hosts:
         - {{ include "grafana.domain" . | quote }}
-        {{- if .Values.cloudflare.enabled }}
-        secretName: cloudflare-grafana-cert
-        {{- else }}
-        secretName: grafana-ingress-cert
-        {{- end }}
+        secretName: {{ required "Missing grafana ingress certificate" .Values.grafana.ingressCertSecret | quote }}

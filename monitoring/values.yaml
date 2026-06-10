@@ -17,13 +17,11 @@ defaultServices:
 
 cloudflare: 
   enabled: true
-  sourceNamespace: "" # Defaults to the ops namespace for the group
-  certificates: # Secret names
-    grafana: ""
 
 grafana:
   version: 12.3.0
   domain: ""
+  ingressCertSecret: grafana-ingress-cert
 
   replicas: 2
 
