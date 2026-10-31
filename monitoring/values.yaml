@@ -41,7 +41,7 @@ grafana:
     sharedBufferSize: 38MB # Set to 25% of total memory
     storage:
       class: topolvm-root
-      size: 3Gi
+      size: 5Gi
     resources:
       requests:
         cpu: 10m
